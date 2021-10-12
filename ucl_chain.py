@@ -70,8 +70,7 @@ def main():
     for pair in uid_name:
         un_dict = dict()
 
-        pair = pair.replace(':', ',').replace(' ', '').replace('\"', '').replace('\n', '')
-        pair = pair.split(',')
+        pair = pair.replace(':', ',').replace(' ', '').replace('\"', '').replace('\n', '').split(',')
 
         un_dict['uid'] = pair[1]
         un_dict['name'] = pair[2]
