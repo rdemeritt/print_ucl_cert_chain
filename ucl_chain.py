@@ -43,10 +43,6 @@ def get_cert_key_info(_uid, _partition):
 def build_chain(_material):
     i = 0
     while i < len(_material):
-        # final element
-        if i + 1 > len(_material):
-            config.logger.debug('final element')
-            continue
         y = 0
         while y < len(_material):
             if _material[i]['issuer'] == _material[y]['subject']:
