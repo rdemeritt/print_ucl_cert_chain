@@ -10,21 +10,12 @@ from time import time
 def ucl_list_part(_partition=None):
     logging.debug(f'partition={_partition}')
     if _partition is None:
-        listing = Popen(
-            ['ucl', 'list'],
-            stdout=PIPE)
+        listing = Popen(['ucl', 'list'], stdout=PIPE)
     else:
-        listing = Popen(
-            ['ucl', 'list', '-p', f'{_partition}'],
-            stdout=PIPE)
-    awk = Popen(
-        ['awk', '-v', 'FS=UID=', 'NF>1{print $1 $2}'],
-        stdin=listing.stdout, stdout=PIPE)
-    uid_name = Popen(
-        ['sed', 's/ Name=/,/g'],
-        stdin=awk.stdout, stdout=PIPE, encoding='utf8')
+        listing = Popen(['ucl', 'list', '-p', f'{_partition}'], stdout=PIPE)
+    awk = Popen(['awk', '-v', 'FS=UID=', 'NF>1{print $1 $2}'], stdin=listing.stdout, stdout=PIPE)
+    uid_name = Popen(['sed', 's/ Name=/,/g'], stdin=awk.stdout, stdout=PIPE, encoding='utf8')
     uid_name.wait()
-    logging.debug(uid_name.stdout)
     return uid_name.stdout
 
 
@@ -36,9 +27,6 @@ def get_cert_key_info(_uid, _partition=None):
         cert_key = Popen(['ucl', 'show', '-u', f'{_uid}'], stdout=PIPE)
     else:
         cert_key = Popen(['ucl', 'show', '-p', f'{_partition}', '-u', f'{_uid}'], stdout=PIPE)
-
-    logging.debug(cert_key.args)
-
     awk = Popen(['awk', '-v', 'FS=CN=', 'NF>1{print $1 $2}'], stdin=cert_key.stdout, stdout=PIPE, encoding='utf8')
     awk.wait()
 
@@ -81,8 +69,7 @@ def build_chain(_material):
         # _list.append(_child)
         return _list, False
 
-    def remove_item_from_list(_item, _list):
-        logging.debug(f'_list = {len(_list)}')
+    def return_populated_chain(_item, _list):
         z = 0
         while z < len(_list):
             if _item['uid'] == _list[z]['uid']:
@@ -91,13 +78,11 @@ def build_chain(_material):
                 logging.debug(f'removed {_item["uid"]}')
                 return _list, item_copy
             z += 1
-        return _list
 
     new_material = deepcopy(_material)
-    logging.debug(len(new_material))
     i = 0
     while i < len(_material):
-        new_material, copy = remove_item_from_list(_material[i], new_material)
+        new_material, copy = return_populated_chain(_material[i], new_material)
         new_material, match = insert_child(copy, new_material)
         if match is False:
             new_material.append(copy)
@@ -107,8 +92,6 @@ def build_chain(_material):
 
 
 def populate_uid_info(_material, _partition=None):
-    logging.debug(f'partition={_partition}')
-
     # populate issuer and subject for each uid
     i = 0
     while i < len(_material):
@@ -141,8 +124,6 @@ def populate_uid_list(_uid_list):
 
 
 def main():
-    material = []
-
     if args.partition:
         logging.debug(f'partition={args.partition}')
         material = populate_uid_info(populate_uid_list(ucl_list_part(args.partition)), args.partition)
@@ -212,5 +193,5 @@ if __name__ == '__main__':
     arg0 = None
 
     init()
-    logger.debug('Starting')
+    logging.debug('Starting')
     main()
