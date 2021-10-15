@@ -79,7 +79,7 @@ def build_chain(_material):
                 return _list, item_copy
             z += 1
 
-    new_material = _material
+    new_material = deepcopy(_material)
     i = 0
     while i < len(_material):
         new_material, copy = return_populated_chain(_material[i], new_material)
