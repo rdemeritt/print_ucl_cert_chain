@@ -60,13 +60,13 @@ def build_chain(_material):
                 logging.debug(f"{_list[x]['uid']} is parent of {_child['uid']}")
                 _list[x]['child'].append(_child)
                 return _list, True
+
             if 'child' in _list[x]:
                 _list[x]['child'], is_match = insert_child(_child, _list[x]['child'])
                 if is_match is True:
                     return _list, True
             x += 1
         # no match
-        # _list.append(_child)
         return _list, False
 
     def return_populated_chain(_item, _list):
@@ -79,7 +79,7 @@ def build_chain(_material):
                 return _list, item_copy
             z += 1
 
-    new_material = deepcopy(_material)
+    new_material = _material
     i = 0
     while i < len(_material):
         new_material, copy = return_populated_chain(_material[i], new_material)
