@@ -91,6 +91,23 @@ def build_chain(_material):
     return new_material
 
 
+def find_material(_uid, _list, _i=0):
+    x = 0
+    while x < len(_list):
+        if _list[x]['uid'] == _uid:
+            return _list[x], _i, True
+
+        if 'child' in _list[x]:
+            _i += 1
+            _list[x]['child'], _i, is_match = find_material(_uid, _list[x]['child'], _i)
+            if is_match is True:
+                return _list[x], _i, True
+            _i -= 1
+
+        x += 1
+    return f'{_uid} was not found in any chain', _i, False
+
+
 def populate_uid_info(_material, _partition=None):
     # populate issuer and subject for each uid
     i = 0
@@ -125,15 +142,16 @@ def populate_uid_list(_uid_list):
 
 def main():
     if args.partition:
-        logging.debug(f'partition={args.partition}')
         material = populate_uid_info(populate_uid_list(ucl_list_part(args.partition)), args.partition)
     else:
         logging.debug('no partition given')
         material = populate_uid_info(populate_uid_list(ucl_list_part()))
-
-    # now we have our data... let's sort it
     chain = build_chain(material)
-    print(json.dumps(chain, indent=4))
+
+    if args.uid:
+        print(json.dumps(find_material(args.uid, chain)[0], indent=4))
+    else:
+        print(json.dumps(chain, indent=4))
 
 
 def build_arg_parser():
@@ -141,6 +159,7 @@ def build_arg_parser():
         prog=f'{arg0}', description='')
     parser.add_argument('--log_level', help='Set the logging level')
     parser.add_argument('--partition', '-p', help='UKC Partition to use')
+    parser.add_argument('--uid', '-u', help='UID of the material in question')
 
     return parser.parse_args()
 
@@ -157,12 +176,10 @@ def build_logger():
 
     # log to file
     fh = logging.FileHandler('%s_%s.log' % (logger_name, start_time))
-    fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)
 
     # log to the console as well
     ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
     ch.setFormatter(formatter)
 
     logging.basicConfig(level=log_level, handlers=(fh, ch))
