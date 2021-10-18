@@ -95,7 +95,7 @@ def find_material(_uid, _list, _i=0):
     x = 0
     while x < len(_list):
         if _list[x]['uid'] == _uid:
-            return _list[x], _i, True
+            return _list, _i, True
 
         if 'child' in _list[x]:
             _i += 1
@@ -131,9 +131,8 @@ def populate_uid_list(_uid_list):
         un_dict['type'] = pair[0]
 
         logging.debug(f'un_dict={un_dict}')
-        if un_dict['type'] in ('PrivateECCkey', 'PWD'):
-            continue
-        else:
+
+        if un_dict['type'] in ('Certificate', 'PrivateRSAkey'):
             material.append(un_dict)
 
     logging.debug(json.dumps(material, indent=4))
